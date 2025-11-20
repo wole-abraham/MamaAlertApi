@@ -81,7 +81,7 @@ async def movement(request:Request, movement: MovementTracker, user=Depends(get_
     await supabase.table("movement_tracker").insert(
         data
     ).execute()
-    return JSONResponse(status_code=200)
+    return Response(status_code=200)
 
 @router.get("/movement", response_model=List[MovementTracker])
 async def movement(request: Request,  user=Depends(get_current_user)):

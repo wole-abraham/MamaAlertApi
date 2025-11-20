@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from .api.routes import appointments, trackers, find_care, symptom_logger, emergency
+from .api.routes import appointments, trackers, find_care, symptom_logger, emergency, checklist
 from app.supabase_client import create_supabase
 
 app = FastAPI(
@@ -21,6 +21,7 @@ async def startup_event():
 
 app.include_router(appointments.router)
 app.include_router(trackers.router)
+app.include_router(checklist.router)
 # app.include_router(find_care.router)
 app.include_router(symptom_logger.router)
 # app.include_router(emergency.router)

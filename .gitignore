@@ -1,0 +1,91 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+pip-wheel-metadata/
+*.egg
+
+# Installer logs
+pip-log.txt
+
+# Unit test / coverage
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+.pytest_cache/
+
+# Virtual environments
+venv/
+.venv/
+ENV/
+env/
+venv.bak/
+venv/
+
+# Python environment files
+.python-version
+
+# Pydantic / mypy / ruff / caches
+.mypy_cache/
+.ruff_cache/
+
+# VS Code
+.vscode/
+
+# PyCharm
+.idea/
+*.iml
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+ehthumbs.db
+
+# Logs
+*.log
+
+# SQLite and local DB files
+*.db
+*.sqlite3
+
+# Secrets
+.env
+.env.*
+
+# Build artifacts
+*.egg
+*.whl
+
+# Misc
+node_modules/
+
+# JetBrains
+.idea/
+
+# Local env files
+local_settings.py
+
+# Ignore coverage reports
+.coverage
+coverage.xml
+
+# Ignore static files build
+staticfiles/
+
+# Ignore generated migrations (if you want to)
+# **/migrations/
+
+# End of .gitignore

@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, Request
 from fastapi.responses import JSONResponse, Response
 from pydantic import BaseModel, field_validator
+from fastapi.exceptions import HTTPException
 from app.api.dependencies.auth import get_current_user
 import dotenv
 import os
@@ -72,4 +73,4 @@ async def emergency(request:Request, user=Depends(get_current_user)):
         requests.post("https://v3.api.termii.com/api/sms/send", json=payload, headers=headers)
     except Exception:
         raise HTTPException(status_code=401)
-    return JSONResponse(status_code=200)
+    return Response(status_code=200)

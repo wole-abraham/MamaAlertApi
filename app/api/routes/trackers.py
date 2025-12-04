@@ -61,9 +61,7 @@ async def weight(request: Request, weight: weightTracker, user=Depends(get_curre
     data['user_id'] = user
     supabase = request.app.state.supabase
     await supabase.table("weight_tracker").insert(data).execute()
-  
     return Response(status_code=201)
-
 
 @router.get("/weight", response_model=List[weightTracker])
 async def weight(request: Request, user=Depends(get_current_user)):

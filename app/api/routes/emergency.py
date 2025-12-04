@@ -2,16 +2,24 @@ from fastapi import APIRouter, Depends, Request
 from fastapi.responses import JSONResponse, Response
 from pydantic import BaseModel, field_validator
 from app.api.dependencies.auth import get_current_user
+<<<<<<< HEAD
 from typing import List
 
 
 
 
+=======
+import dotenv
+import os
+import requests
+>>>>>>> 3198599 (fixes)
 
 router = APIRouter(
     prefix="/contact",
     tags=["emergencyContact"]
 )
+
+dotenv.load_dotenv()
 
 class EmergencyContact(BaseModel):
     name: str
@@ -48,3 +56,28 @@ async def emergency_contact(request: Request, user=Depends(get_current_user)):
     supabase = request.app.state.supabase
     res = await supabase.table("emergency_contacts").select("name", "phone", "relationship", "email").eq("user_id", user).execute()
     return JSONResponse(status_code=200, content=res.data)
+
+@router.get("/emergency")
+async def emergency(request:Request, user=Depends(get_current_user)):
+    """Contact emergency contacts
+    --refactor nedeed--"""
+    supabase = request.app.state.supabase
+    res = await supabase.table("emergency_contacts").select("phone").eq("user_id", user).execute()
+    
+    headers={
+        "content-type": "application/json"
+    }
+
+    payload = {
+        "api_key": os.getenv("TERMII_API_KEY"),
+        "to": [x['phone'] for x in res.data],
+        "from":"MamaAlert",
+        "sms": "wole has an emergency",
+        "channel": "generic",
+        "type": "plain"
+    }
+    try:
+        requests.post("https://v3.api.termii.com/api/sms/send", json=payload, headers=headers)
+    except Exception:
+        raise HTTPException(status_code=401)
+    return JSONResponse(status_code=200)

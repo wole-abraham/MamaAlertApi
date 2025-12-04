@@ -1,10 +1,6 @@
 import dotenv
 import os
-import requests
-from jose import jwt
 
-import os
-import asyncio
 from supabase import acreate_client, AsyncClient
 
 dotenv.load_dotenv()

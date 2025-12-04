@@ -67,7 +67,7 @@ async def create_appointment(request: Request, appointment:Appointment, user = D
     details = _normalize_record_for_db(details)
     try:
         await table.insert(details).execute()
-    except Exception as e:
+    except Exception:
         raise HTTPException(status_code=400, detail="Invalid Input")
     return Response(status_code=204)
 

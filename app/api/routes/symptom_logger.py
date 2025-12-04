@@ -3,7 +3,6 @@ from fastapi.responses import JSONResponse, Response
 from pydantic import BaseModel, field_validator
 from datetime import date, time
 from app.api.dependencies.auth import get_current_user
-from typing import List
 from enum import Enum
 
 router = APIRouter(

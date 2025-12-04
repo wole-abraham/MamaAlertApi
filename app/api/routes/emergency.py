@@ -2,17 +2,9 @@ from fastapi import APIRouter, Depends, Request
 from fastapi.responses import JSONResponse, Response
 from pydantic import BaseModel, field_validator
 from app.api.dependencies.auth import get_current_user
-<<<<<<< HEAD
-from typing import List
-
-
-
-
-=======
 import dotenv
 import os
 import requests
->>>>>>> 3198599 (fixes)
 
 router = APIRouter(
     prefix="/contact",

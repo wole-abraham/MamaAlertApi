@@ -1,14 +1,9 @@
 from fastapi import FastAPI
-<<<<<<< HEAD
-from .api.routes import appointments, trackers, find_care, symptom_logger, emergency, checklist
-from app.supabase_client import create_supabase
-=======
 from .api.routes import appointments, trackers, symptom_logger, emergency, checklist, log_period,baby_profiles,baby_symptom, daily_log, feed
 from app.supabase_client import create_supabase
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
->>>>>>> 3198599 (fixes)
 
 app = FastAPI(
     title="MamaAlertAPI",

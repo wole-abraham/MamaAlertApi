@@ -22,6 +22,17 @@ class UserComment(BaseModel):
     time: time
 
 
+async def check_post(supabase, post_id):
+        """
+            checks if post exists
+        """
+        try:
+            await supabase.table("posts").select("id").eq("id", post_id).single().execute()
+        except Exception:
+            raise HTTPException(status_code=404, detail="Post not found")
+        else:
+            return True
+
 @router.post("/")
 async def create_post(request: Request, payload: Posts, user=Depends(get_current_user)):
     """
@@ -58,17 +69,10 @@ async def comment(request:Request, payload: UserComment, post_id: str, user=Depe
         post comment from user
     """
 
-    supabase = request.app.state.supabase
-    async def check_post(post_id):
-        try:
-            res = await supabase.table("posts").select("id").eq("id", post_id).execute()
-        except Exception:
-            raise HTTPException(status_code=401, detail="Invalid Post Id")
-        else:
-            return True
+    supabase = request.app.state.supabase   
+    
 
-
-    if await check_post(post_id):
+    if await check_post(supabase, post_id):
         supabase = request.app.state.supabase
         supabase = supabase.table("comment")
         payload = payload.model_dump()
@@ -78,7 +82,6 @@ async def comment(request:Request, payload: UserComment, post_id: str, user=Depe
         payload['post_id'] = post_id
         await supabase.insert(payload).execute()
         return Response(status_code=201)
-
 
 
 @router.post("/{post_id}/like")
@@ -98,9 +101,22 @@ async def like_Post(request: Request, post_id: str, user=Depends(get_current_use
 async def unlike_post(request: Request, post_id: str, user=Depends(get_current_user)):
     """UNlike posts"""
     supabase = request.app.state.supabase
+    await check_post(supabase, post_id)
     supabase = supabase.table("post_likes")
     try:
         await supabase.delete().eq("post_id", post_id).eq("profile_id", user).execute()
         return JSONResponse(status_code=200, content={"status": "deleted"})
     except Exception:
         return JSONResponse(status_code=200, content={"status": "deleted"})
+
+
+@router.get("/{post_id}/comment")
+async def get_comments(request: Request, post_id: str, user=Depends(get_current_user)):
+    """
+    get comments for -post-id --> post_id
+    """
+
+    supabase = request.app.state.supabase
+    await check_post(supabase, post_id)
+    supabase = await supabase.table("comment").select("id, content, date, time, profiles(first_name, last_name)").execute()
+    return JSONResponse(status_code=201, content=supabase.data)

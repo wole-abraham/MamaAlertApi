@@ -18,6 +18,15 @@ class babyprofile(BaseModel):
     gender:str
 
 
+async def check_baby(supabase, baby_id):
+    """
+        checks baby id if exists
+    """
+    supabase = await supabase.table("baby_profiles").select('id').eq("id", baby_id).single().execute()
+    if not supabase:
+        raise HTTPException(status_code=404, detail="id not found")
+    return True
+
 @router.post("/")
 async def baby_profile(request:Request, payload:babyprofile, user=Depends(get_current_user)):
     supabase = request.app.state.supabase
@@ -49,6 +58,7 @@ async def babies(request:Request, user=Depends(get_current_user)):
 @router.get("/{id}")
 async def babies(request:Request, id: str,  user=Depends(get_current_user)):
     supabase = request.app.state.supabase
+    await check_baby(supabase, id)
     table = supabase.table("baby_profiles")
     res = await table.select(
         "id",

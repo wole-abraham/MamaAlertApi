@@ -1,8 +1,7 @@
 from fastapi import FastAPI
 from .api.routes import appointments, trackers, symptom_logger, emergency, checklist, log_period,baby_profiles,baby_symptom, daily_log, feed
 from app.supabase_client import create_supabase
-from fastapi.exceptions import RequestValidationError
-from fastapi.responses import JSONResponse
+
 
 
 app = FastAPI(
@@ -28,3 +27,4 @@ app.include_router(checklist.router)
 # app.include_router(find_care.router)
 app.include_router(symptom_logger.router)
 app.include_router(emergency.router)
+app.include_router(feed.router)

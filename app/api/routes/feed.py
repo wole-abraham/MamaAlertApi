@@ -71,7 +71,6 @@ async def comment(request:Request, payload: UserComment, post_id: str, user=Depe
 
     supabase = request.app.state.supabase   
     
-
     if await check_post(supabase, post_id):
         supabase = request.app.state.supabase
         supabase = supabase.table("comment")
@@ -115,8 +114,17 @@ async def get_comments(request: Request, post_id: str, user=Depends(get_current_
     """
     get comments for -post-id --> post_id
     """
-
     supabase = request.app.state.supabase
     await check_post(supabase, post_id)
-    supabase = await supabase.table("comment").select("id, content, date, time, profiles(first_name, last_name)").execute()
+    supabase = await supabase.table("comment").select("id, content, date, time, profiles as name (first_name, last_name)").execute()
     return JSONResponse(status_code=201, content=supabase.data)
+
+@router.delete("/comment/{comment_id}")
+async def delete_comment(request: Request, comment_id: str, user=Depends(get_current_user)):
+    """
+    Delete comment from user 
+    check if user owns the comment
+    """
+
+    supabase = request.app.state.supabase
+    supabase = await supabase.table("comment")

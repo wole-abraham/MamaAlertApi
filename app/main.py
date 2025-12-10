@@ -28,3 +28,8 @@ app.include_router(checklist.router)
 app.include_router(symptom_logger.router)
 app.include_router(emergency.router)
 app.include_router(feed.router)
+app.include_router(log_period.router)
+app.include_router(baby_profiles.router)
+app.include_router(baby_symptom.router)
+app.include_router(daily_log.router)
+

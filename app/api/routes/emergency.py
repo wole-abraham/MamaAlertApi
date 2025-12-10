@@ -57,8 +57,7 @@ async def emergency(request:Request, user=Depends(get_current_user)):
     supabase = request.app.state.supabase
     res = await supabase.table("emergency_contacts").select("phone").eq("user_id", user).execute()
     user = await supabase.table("profiles").select("first_name", "last_name").eq("id", user).single().execute()
-   
-    
+       
     headers={
         "content-type": "application/json"
     }
@@ -73,7 +72,6 @@ async def emergency(request:Request, user=Depends(get_current_user)):
     }
     try:
         requests.post("https://v3.api.termii.com/api/sms/send", json=payload, headers=headers)
-        pass
     except Exception:
         raise HTTPException(status_code=401)
     return Response(status_code=200)

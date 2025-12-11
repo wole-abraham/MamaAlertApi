@@ -11,7 +11,9 @@ class checkList(BaseModel):
 
 
 router = APIRouter(
-    prefix="/checklist"
+    prefix="/checklist",
+    tags=['checklist']
+
 )
 
 

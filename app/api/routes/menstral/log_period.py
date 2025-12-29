@@ -6,15 +6,14 @@ from datetime import date
 from fastapi.responses import Response
 
 
-
 router = APIRouter(
     prefix="/period_log",
     tags=["period_log"]
-
 )
 
 class period_log(BaseModel):
     start: date
+    period_staus: str
     flow_level: str
     symptoms: Optional[List]
 

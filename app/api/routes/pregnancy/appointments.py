@@ -8,7 +8,7 @@ from typing import List
 
 router = APIRouter(
     prefix="/appointment",
-    tags=["appointments"]
+    tags=["appointment"]
 )
 
 class Appointment(BaseModel):
@@ -19,56 +19,56 @@ class Appointment(BaseModel):
     doctor: str
     notes: str | None = None
 
-    @field_validator("appointment_date", mode="before")
-    def parse_date(cls, v):
-        if v is None:
-            return None
-        if isinstance(v, date):
-            return v
-        try:
-            return date.fromisoformat(v)
-        except Exception:
-            raise ValueError("appointment_date must be YYYY-MM-DD")
 
-    @field_validator("appointment_time", mode="before")
-    def parse_time(cls, v):
-        if v is None:
-            return None
-        if isinstance(v, time):
-            return v
-        try:
-            return time.fromisoformat(v)
-        except Exception:
-            raise ValueError("appointment_time must be HH:MM")
+    # @field_validator("appointment_date", mode="before")
+    # def parse_date(cls, v):
+    #     if v is None:
+    #         return None
+    #     if isinstance(v, date):
+    #         return v
+    #     try:
+    #         return date.fromisoformat(v)
+    #     except Exception:
+    #         raise ValueError("appointment_date must be YYYY-MM-DD")
+
+    # @field_validator("appointment_time", mode="before")
+    # def parse_time(cls, v):
+    #     if v is None:
+    #         return None
+    #     if isinstance(v, time):
+    #         return v
+    #     try:
+    #         return time.fromisoformat(v)
+    #     except Exception:
+    #         raise ValueError("appointment_time must be HH:MM")
 
 
 class AppointmentUpdate(Appointment):
     id: str
 
 
-def _normalize_record_for_db(rec: dict) -> dict:
-    r = rec.copy()
-    d = r.get("appointment_date")
-    if isinstance(d, date):
-        r["appointment_date"] = d.isoformat()
-    t = r.get("appointment_time")
-    if isinstance(t, time):
-        r["appointment_time"] = t.isoformat()
-    return r
+# def _normalize_record_for_db(rec: dict) -> dict:
+#     r = rec.copy()
+#     d = r.get("appointment_date")
+#     if isinstance(d, date):
+#         r["appointment_date"] = d.isoformat()
+#     t = r.get("appointment_time")
+#     if isinstance(t, time):
+#         r["appointment_time"] = t.isoformat()
+#     return r
 
 
 @router.post("/")
 async def create_appointment(request: Request, appointment:Appointment, user = Depends(get_current_user)):
     """stores the user appointments"""
-    details = appointment.model_dump(exclude=["id"])
+    details = appointment.model_dump(exclude=["id"], mode="json")
     supabase = request.app.state.supabase
     table = supabase.table("appointments")
     details['user_id'] = user
-    details = _normalize_record_for_db(details)
     try:
         await table.insert(details).execute()
-    except Exception:
-        raise HTTPException(status_code=400, detail="Invalid Input")
+    except Exception as e:
+        raise HTTPException(status_code=400, detail="Invalid request")
     return Response(status_code=204)
 
 @router.post("/bulk")
@@ -76,7 +76,7 @@ async def create_bulk_appointments(request: Request, appointments:List[Appointme
     """Create appointments in Bulk  """
     supabase = request.app.state.supabase
     table = supabase.table("appointments")
-    record = [_normalize_record_for_db(a.model_dump(exclude_none=True)) | {"user_id": user} for a in appointments]
+    record = [a.model_dump(exclude_none=True, mode="json") | {"user_id": user} for a in appointments]
     await table.insert(record).execute()
     return Response(status_code=204)
 

@@ -93,7 +93,7 @@ async def like_Post(request: Request, post_id: str, user=Depends(get_current_use
         await supabase.insert({
                 "post_id": post_id, "profile_id": user}).execute()
     except Exception:
-        return JSONResponse(status_code=200, content={"status": "liked"})
+        return JSONResponse(status_code=200, content={"status": "liked again"})
 
     return JSONResponse(status_code=200, content={"status": "liked"})
 
@@ -126,6 +126,11 @@ async def delete_comment(request: Request, comment_id: str, user=Depends(get_cur
     Delete comment from user 
     check if user owns the comment
     """
-
     supabase = request.app.state.supabase
-    supabase = await supabase.table("comment")
+    try:
+        supabase = await supabase.table("comment").select("id").eq("profile_id", user).eq("id", comment_id).single().execute()
+        supabase.table("comment").delete().eq("profile_id", user).eq("comment_id", user).execute()
+    except Exception:
+        raise HTTPException(status_code=404, detail="post not found")
+    else:
+        return Response(status_code=200)

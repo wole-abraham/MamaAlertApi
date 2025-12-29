@@ -1,5 +1,9 @@
 from fastapi import FastAPI
-from .api.routes import appointments, trackers, symptom_logger, emergency, checklist, log_period,baby_profiles,baby_symptom, daily_log, feed
+
+from .api.routes.postpartum import baby_profiles, baby_symptom
+from .api.routes import feed, checklist, find_care, profile
+from .api.routes.pregnancy import appointments, emergency, symptom_logger, trackers
+from .api.routes.menstral import daily_log, log_period
 from app.supabase_client import create_supabase
 
 
@@ -32,4 +36,5 @@ app.include_router(log_period.router)
 app.include_router(baby_profiles.router)
 app.include_router(baby_symptom.router)
 app.include_router(daily_log.router)
+app.include_router(profile.router)
 

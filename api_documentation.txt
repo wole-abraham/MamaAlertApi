@@ -1,0 +1,718 @@
+================================================================================
+                    MAMA ALERT API - DOCUMENTATION
+================================================================================
+Base URL: http://localhost:8000
+API Version: 1.0.0
+Authentication: Required (JWT Bearer Token) for all endpoints except auth
+Date: December 13, 2025
+
+================================================================================
+TABLE OF CONTENTS
+================================================================================
+1. APPOINTMENTS
+2. BABY PROFILES
+3. BABY SYMPTOMS
+4. CHECKLIST
+5. DAILY LOG (Menstrual Mode)
+6. EMERGENCY CONTACTS
+7. FEED (Community Posts)
+8. PERIOD LOG
+9. POSTPARTUM SYMPTOM LOG
+10. PROFILE
+11. SYMPTOM LOGGER
+12. TRACKERS (Weight & Movement)
+13. VACCINATION
+
+================================================================================
+1. APPOINTMENTS API
+================================================================================
+Prefix: /appointment
+Tags: appointments
+Authentication: Required
+
+-----------
+POST /appointment/
+-----------
+Description: Create a single appointment
+Authentication: Required
+Request Body:
+  {
+    "appointment_type": "string",
+    "appointment_date": "YYYY-MM-DD",
+    "appointment_time": "HH:MM:SS",
+    "hospital_name": "string",
+    "doctor": "string",
+    "notes": "string (optional)"
+  }
+Response: 204 No Content
+Errors: 400 Invalid Input
+
+-----------
+POST /appointment/bulk
+-----------
+Description: Create multiple appointments in bulk
+Authentication: Required
+Request Body: Array of appointment objects
+  [
+    {
+      "appointment_type": "string",
+      "appointment_date": "YYYY-MM-DD",
+      "appointment_time": "HH:MM:SS",
+      "hospital_name": "string",
+      "doctor": "string",
+      "notes": "string (optional)"
+    }
+  ]
+Response: 204 No Content
+
+-----------
+GET /appointment/
+-----------
+Description: Get all user appointments
+Authentication: Required
+Response: 200 OK
+  [
+    {
+      "id": "string",
+      "hospital_name": "string",
+      "appointment_date": "YYYY-MM-DD",
+      "appointment_time": "HH:MM:SS",
+      "notes": "string",
+      "doctor": "string",
+      "appointment_type": "string"
+    }
+  ]
+
+-----------
+PATCH /appointment/
+-----------
+Description: Update appointment information
+Authentication: Required
+Request Body:
+  {
+    "id": "string",
+    "appointment_type": "string",
+    "appointment_date": "YYYY-MM-DD",
+    "appointment_time": "HH:MM:SS",
+    "hospital_name": "string",
+    "doctor": "string",
+    "notes": "string (optional)"
+  }
+Response: 204 No Content
+Errors: 400 Missing ID, 404 Item not found
+
+================================================================================
+2. BABY PROFILES API
+================================================================================
+Prefix: /babies
+Tags: baby_profile
+Authentication: Required
+
+-----------
+POST /babies/
+-----------
+Description: Create baby profile
+Authentication: Required
+Request Body:
+  {
+    "name": "string",
+    "birth_date": "YYYY-MM-DD",
+    "birth_weight": float,
+    "birth_height": float,
+    "gender": "string"
+  }
+Response: 201 Created
+Errors: 400 Bad Request
+
+-----------
+GET /babies/
+-----------
+Description: Get all babies for current user
+Authentication: Required
+Response: 200 OK
+  [
+    {
+      "id": "string",
+      "name": "string",
+      "birth_date": "YYYY-MM-DD",
+      "birth_weight": float,
+      "birth_height": float,
+      "gender": "string"
+    }
+  ]
+
+-----------
+GET /babies/{id}
+-----------
+Description: Get specific baby by ID
+Authentication: Required
+Path Parameters:
+  - id: string (Baby ID)
+Response: 200 OK
+  {
+    "id": "string",
+    "name": "string",
+    "birth_date": "YYYY-MM-DD",
+    "birth_weight": float,
+    "birth_height": float,
+    "gender": "string"
+  }
+Errors: 404 ID not found
+
+-----------
+PATCH /babies/{id}
+-----------
+Description: Update baby profile
+Authentication: Required
+Path Parameters:
+  - id: string (Baby ID)
+Request Body:
+  {
+    "name": "string",
+    "birth_date": "YYYY-MM-DD",
+    "birth_weight": float,
+    "birth_height": float,
+    "gender": "string"
+  }
+Response: 204 No Content
+Errors: 400 Bad Request
+
+================================================================================
+3. BABY SYMPTOMS API
+================================================================================
+Prefix: /babies
+Tags: baby_symptoms
+Authentication: Required
+
+-----------
+POST /babies/symptoms
+-----------
+Description: Log baby health symptoms
+Authentication: Required
+Request Body:
+  {
+    "symptom": "string",
+    "baby_id": "string",
+    "severity": "string",
+    "note": "string (optional)",
+    "date": "YYYY-MM-DD",
+    "time": "HH:MM:SS"
+  }
+Response: 200 OK
+
+-----------
+GET /babies/
+-----------
+Description: Get all baby health logs
+Authentication: Required
+Response: 200 OK
+  [
+    {
+      "symptom": "string",
+      "severity": "string",
+      "note": "string",
+      "date": "YYYY-MM-DD",
+      "time": "HH:MM:SS"
+    }
+  ]
+
+================================================================================
+4. CHECKLIST API
+================================================================================
+Prefix: /checklist
+Tags: checklist
+Authentication: Required
+
+-----------
+POST /checklist/
+-----------
+Description: Upsert bag checklist item
+Authentication: Required
+Request Body:
+  {
+    "item_id": integer,
+    "checked": boolean
+  }
+Response: 201 Created
+Notes: Uses upsert with conflict on (user_id, item_id)
+
+================================================================================
+5. DAILY LOG API (Menstrual Mode)
+================================================================================
+Prefix: /menstral-mode
+Tags: menstra-mode
+Authentication: Required
+
+-----------
+POST /menstral-mode/daily-log
+-----------
+Description: Post daily log entry
+Authentication: Required
+Request Body:
+  {
+    "feeling": "string",
+    "symptoms": ["string"] (optional),
+    "sexual_activity": "string",
+    "sleep_quality": integer,
+    "stress_level": integer,
+    "date": "YYYY-MM-DD"
+  }
+Response: 201 Created
+
+-----------
+GET /menstral-mode/daily-log
+-----------
+Description: Get all daily logs for user
+Authentication: Required
+Response: 200 OK
+  [
+    {
+      "feeling": "string",
+      "symptoms": ["string"],
+      "sexual_activity": "string",
+      "sleep_quality": integer,
+      "stress_level": integer,
+      "date": "YYYY-MM-DD"
+    }
+  ]
+
+================================================================================
+6. EMERGENCY CONTACTS API
+================================================================================
+Prefix: /contact
+Tags: emergencyContact
+Authentication: Required
+
+-----------
+POST /contact/
+-----------
+Description: Add emergency contact
+Authentication: Required
+Request Body:
+  {
+    "name": "string",
+    "relationship": "string",
+    "phone": "string",
+    "email": "string (optional, must be valid)"
+  }
+Response: 201 Created
+Validation: Email must contain '@'
+
+-----------
+GET /contact/
+-----------
+Description: Get all emergency contacts
+Authentication: Required
+Response: 200 OK
+  [
+    {
+      "name": "string",
+      "phone": "string",
+      "relationship": "string",
+      "email": "string"
+    }
+  ]
+
+-----------
+GET /contact/emergency
+-----------
+Description: Contact all emergency contacts via SMS
+Authentication: Required
+Response: 200 OK
+Errors: 401 Unauthorized (SMS service failure)
+Notes: Sends SMS to all emergency contacts using Termii API
+       Message format: "[First Name] [Last Name] has an emergency"
+
+================================================================================
+7. FEED API (Community Posts)
+================================================================================
+Prefix: /feed
+Tags: feed
+Authentication: Required
+
+-----------
+POST /feed/
+-----------
+Description: Create a new post
+Authentication: Required
+Request Body:
+  {
+    "title": "string",
+    "content": "string",
+    "date": "YYYY-MM-DD",
+    "time": "HH:MM:SS"
+  }
+Response: 201 Created
+
+-----------
+GET /feed/
+-----------
+Description: List all posts
+Authentication: Required
+Response: 200 OK
+  [
+    {
+      "id": "string",
+      "content": "string",
+      "created_at": "timestamp",
+      "profiles": {
+        "first_name": "string",
+        "last_name": "string"
+      }
+    }
+  ]
+
+-----------
+POST /feed/{post_id}/comment
+-----------
+Description: Comment on a post
+Authentication: Required
+Path Parameters:
+  - post_id: string
+Request Body:
+  {
+    "content": "string",
+    "date": "YYYY-MM-DD",
+    "time": "HH:MM:SS"
+  }
+Response: 201 Created
+Errors: 404 Post not found
+
+-----------
+GET /feed/{post_id}/comment
+-----------
+Description: Get all comments for a post
+Authentication: Required
+Path Parameters:
+  - post_id: string
+Response: 201 Created
+  [
+    {
+      "id": "string",
+      "content": "string",
+      "date": "YYYY-MM-DD",
+      "time": "HH:MM:SS",
+      "name": {
+        "first_name": "string",
+        "last_name": "string"
+      }
+    }
+  ]
+Errors: 404 Post not found
+
+-----------
+DELETE /feed/comment/{comment_id}
+-----------
+Description: Delete a comment (must be comment owner)
+Authentication: Required
+Path Parameters:
+  - comment_id: string
+Response: 200 OK
+Errors: 404 Post not found
+
+-----------
+POST /feed/{post_id}/like
+-----------
+Description: Like a post
+Authentication: Required
+Path Parameters:
+  - post_id: string
+Response: 200 OK
+  {
+    "status": "liked" | "liked again"
+  }
+
+-----------
+DELETE /feed/{post_id}/like
+-----------
+Description: Unlike a post
+Authentication: Required
+Path Parameters:
+  - post_id: string
+Response: 200 OK
+  {
+    "status": "deleted"
+  }
+Errors: 404 Post not found
+
+================================================================================
+8. PERIOD LOG API
+================================================================================
+Prefix: /period_log
+Tags: period_log
+Authentication: Required
+
+-----------
+POST /period_log/
+-----------
+Description: Log period information
+Authentication: Required
+Request Body:
+  {
+    "start": "YYYY-MM-DD",
+    "flow_level": "string",
+    "symptoms": ["string"] (optional)
+  }
+Response: 201 Created
+
+================================================================================
+9. POSTPARTUM SYMPTOM LOG API
+================================================================================
+Prefix: /post-partum-log
+Authentication: Required
+
+-----------
+POST /post-partum-log/
+-----------
+Description: Log postpartum symptoms
+Authentication: Required
+Request Body:
+  {
+    "symptom": "string",
+    "severity_level": "string",
+    "notes": "string (optional)",
+    "date": "YYYY-MM-DD",
+    "time": "HH:MM:SS"
+  }
+Response: 201 Created
+
+-----------
+GET /post-partum-log/
+-----------
+Description: Get all postpartum symptom logs
+Authentication: Required
+Response: 200 OK
+  [
+    {
+      "symptom": "string",
+      "severity_level": "string",
+      "date": "YYYY-MM-DD",
+      "time": "HH:MM:SS"
+    }
+  ]
+
+================================================================================
+10. PROFILE API
+================================================================================
+Prefix: /profile
+Tags: profile
+Authentication: Required
+
+-----------
+GET /profile/me
+-----------
+Description: Get current user profile
+Authentication: Required
+Response: 200 OK
+  {
+    "first_name": "string",
+    "last_name": "string",
+    "email": "string"
+  }
+
+================================================================================
+11. SYMPTOM LOGGER API
+================================================================================
+Prefix: /logger
+Tags: logger
+Authentication: Required
+
+-----------
+POST /logger/
+-----------
+Description: Log symptoms
+Authentication: Required
+Request Body:
+  {
+    "symptom_type": "string",
+    "severity_level": "mild" | "moderate" | "severe",
+    "date": "YYYY-MM-DD",
+    "time": "HH:MM:SS"
+  }
+Response: 201 Created
+Validation: 
+  - date must be YYYY-MM-DD format
+  - time must be HH:MM format
+  - severity_level is case-insensitive
+
+-----------
+GET /logger/
+-----------
+Description: Get symptom log history
+Authentication: Required
+Response: 200 OK
+  [
+    {
+      "id": "string",
+      "symptom_type": "string",
+      "date": "YYYY-MM-DD",
+      "time": "HH:MM:SS"
+    }
+  ]
+
+================================================================================
+12. TRACKERS API (Weight & Movement)
+================================================================================
+Prefix: /tracker
+Tags: weighttracker
+Authentication: Required
+
+-----------
+POST /tracker/weight
+-----------
+Description: Store user weight
+Authentication: Required
+Request Body:
+  {
+    "weight": float,
+    "date": "YYYY-MM-DD"
+  }
+Response: 201 Created
+Validation: date must be YYYY-MM-DD format
+
+-----------
+GET /tracker/weight
+-----------
+Description: Get weight history
+Authentication: Required
+Response: 200 OK
+  [
+    {
+      "weight": float,
+      "date": "YYYY-MM-DD"
+    }
+  ]
+
+-----------
+POST /tracker/movement
+-----------
+Description: Store baby movement intervals
+Authentication: Required
+Request Body:
+  {
+    "interval": integer,
+    "date": "YYYY-MM-DD"
+  }
+Response: 200 OK
+Validation: date must be YYYY-MM-DD format
+
+-----------
+GET /tracker/movement
+-----------
+Description: Get movement tracking history
+Authentication: Required
+Response: 200 OK
+  [
+    {
+      "date": "YYYY-MM-DD",
+      "interval": integer
+    }
+  ]
+
+================================================================================
+13. VACCINATION API
+================================================================================
+Prefix: /vaccination
+Authentication: Required
+
+-----------
+POST /vaccination/
+-----------
+Description: Upsert vaccination checklist item
+Authentication: Required
+Request Body:
+  {
+    "item_id": integer,
+    "checked": boolean
+  }
+Response: 201 Created
+Notes: Uses upsert with conflict on (user_id, item_id)
+
+-----------
+GET /vaccination/
+-----------
+Description: Get vaccination checklist
+Authentication: Required
+Response: 200 OK
+  [
+    {
+      "item": "string",
+      "date": "YYYY-MM-DD",
+      "checked": boolean
+    }
+  ]
+
+================================================================================
+COMMON RESPONSE CODES
+================================================================================
+200 OK                  - Request succeeded
+201 Created            - Resource created successfully
+204 No Content         - Success with no response body
+400 Bad Request        - Invalid input or validation error
+401 Unauthorized       - Authentication failed
+404 Not Found          - Resource not found
+500 Internal Server    - Server error
+
+================================================================================
+AUTHENTICATION
+================================================================================
+All endpoints require a valid JWT Bearer token in the Authorization header:
+  Authorization: Bearer <token>
+
+Token is obtained from the authentication service and should be sent with
+every request to protected endpoints.
+
+To retrieve the current user ID from the token, use the get_current_user
+dependency which is automatically injected into each endpoint handler.
+
+================================================================================
+DATA VALIDATION
+================================================================================
+Date Format: YYYY-MM-DD (ISO 8601)
+  Example: 2025-12-13
+
+Time Format: HH:MM:SS or HH:MM
+  Example: 14:30:00 or 14:30
+
+Email: Must contain '@' symbol
+  Example: user@example.com
+
+Phone: String format (validation depends on SMS provider)
+  Example: "+1234567890"
+
+Severity Levels: mild, moderate, severe (case-insensitive)
+
+================================================================================
+NOTES & BEST PRACTICES
+================================================================================
+1. All date/time fields are automatically normalized to ISO format before
+   storing in the database.
+
+2. Use bulk endpoints (/appointment/bulk) when creating multiple records
+   to reduce HTTP overhead.
+
+3. The emergency contact SMS feature requires valid Termii API credentials
+   in the .env file (TERMII_API_KEY).
+
+4. All endpoints automatically associate data with the authenticated user's
+   ID (user_id field).
+
+5. Upsert operations (checklist, vaccination) use conflict resolution on
+   (user_id, item_id) to prevent duplicates.
+
+6. For feed posts, comments, and likes:
+   - Posts include nested profile data (first_name, last_name)
+   - Comments can only be deleted by the comment owner
+   - Likes are unique per user per post
+
+7. Baby profile operations require a valid baby_id that belongs to the
+   current user.
+
+8. Weight and movement trackers support historical data queries for
+   visualization and trend analysis.
+
+================================================================================
+END OF DOCUMENTATION
+================================================================================
+Last Updated: December 13, 2025
+For support or questions, contact the API development team.

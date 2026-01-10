@@ -20,8 +20,6 @@ class Appointment(BaseModel):
     notes: str | None = None
 
 
-
-
 class AppointmentUpdate(Appointment):
     id: str
 
@@ -64,7 +62,7 @@ async def get_appointments(request: Request,user= Depends(get_current_user)):
     return JSONResponse(status_code=200,content=res.data)
 
 @router.patch("/{id}")
-async def update_appointment(request: Request, id: id, appointment: AppointmentUpdate, user:str=Depends(get_current_user)):
+async def update_appointment(request: Request, id: str, appointment: AppointmentUpdate, user:str=Depends(get_current_user)):
     """ Update appointment info"""
     supabase = request.app.state.supabase
     table = supabase.table("appointments")

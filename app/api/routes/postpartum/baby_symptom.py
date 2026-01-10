@@ -5,7 +5,7 @@ from typing import Optional
 from datetime import date, time
 from fastapi.responses import Response, JSONResponse
 
-router = APIRouter(prefix="/babies",
+router = APIRouter(prefix="/baby",
                    tags=["baby_symptoms"])
 
 

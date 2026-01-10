@@ -5,10 +5,7 @@ from datetime import date
 from fastapi.responses import Response, JSONResponse
 from fastapi.exceptions import HTTPException
 
-router = APIRouter(prefix="/babies",
-                   tags=["baby_profile"])
-
-
+router = APIRouter()
 
 class babyprofile(BaseModel):
     name: str
@@ -27,7 +24,7 @@ async def check_baby(supabase, baby_id):
         raise HTTPException(status_code=404, detail="id not found")
     return True
 
-@router.post("/")
+@router.post("/baby/profile")
 async def baby_profile(request:Request, payload:babyprofile, user=Depends(get_current_user)):
     supabase = request.app.state.supabase
     table = supabase.table("baby_profiles")
@@ -40,7 +37,7 @@ async def baby_profile(request:Request, payload:babyprofile, user=Depends(get_cu
         raise HTTPException(status_code=400)
     return Response(status_code=201)
 
-@router.get("/")
+@router.get("/baby/profile")
 async def babies(request:Request, user=Depends(get_current_user)):
     supabase = request.app.state.supabase
     table = supabase.table("baby_profiles")
@@ -55,7 +52,7 @@ async def babies(request:Request, user=Depends(get_current_user)):
     return JSONResponse(status_code=200, content=res.data)
 
 
-@router.get("/{id}")
+@router.get("/baby/profile/{id}")
 async def babies(request:Request, id: str,  user=Depends(get_current_user)):
     supabase = request.app.state.supabase
     await check_baby(supabase, id)
@@ -70,7 +67,7 @@ async def babies(request:Request, id: str,  user=Depends(get_current_user)):
     ).eq("id", id).eq("user_id", user).single().execute()
     return JSONResponse(status_code=200, content=res.data)
 
-@router.patch("/{id}")
+@router.patch("/baby/profile/{id}")
 async def update_baby(request:Request, id:str, payload: babyprofile,user=Depends(get_current_user)):
     supabase = request.app.state.supabase
     table = supabase.table("baby_profiles")

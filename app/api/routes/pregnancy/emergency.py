@@ -8,7 +8,7 @@ import os
 import requests
 
 router = APIRouter(
-    prefix="/contact",
+    prefix="/emergency",
     tags=["emergencyContact"]
 )
 
@@ -33,7 +33,7 @@ class EmergencyContact(BaseModel):
             raise ValueError("must be a valid email")
 
 
-@router.post("/")
+@router.post("/add-contact")
 async def emergency_contact(request: Request, contact: EmergencyContact, user=Depends(get_current_user)):
     """add emergency contact"""
     supabase = request.app.state.supabase
@@ -43,14 +43,14 @@ async def emergency_contact(request: Request, contact: EmergencyContact, user=De
     await supabase.table("emergency_contacts").insert(data).execute()
     return Response(status_code=201)
     
-@router.get("/")
+@router.get("/contacts")
 async def emergency_contact(request: Request, user=Depends(get_current_user)):
     """get emergency contacts"""
     supabase = request.app.state.supabase
-    res = await supabase.table("emergency_contacts").select("name", "phone", "relationship", "email").eq("user_id", user).execute()
+    res = await supabase.table("emergency_contacts").select("id", "name", "phone", "relationship", "email").eq("user_id", user).execute()
     return JSONResponse(status_code=200, content=res.data)
 
-@router.get("/emergency")
+@router.get("/trigger")
 async def emergency(request:Request, user=Depends(get_current_user)):
     """Contact emergency contacts
     --refactor nedeed--"""
@@ -75,3 +75,9 @@ async def emergency(request:Request, user=Depends(get_current_user)):
     except Exception:
         raise HTTPException(status_code=401)
     return Response(status_code=200)
+    
+@router.delete("/delete-contact/{id}")
+async def delete_contact(request: Request, id:str, user=Depends(get_current_user)):
+    supabase = request.app.state.supabase
+    await supabase.table("emergency_conatacts").delete().eq("id", id, "user_id", user).execute()
+    

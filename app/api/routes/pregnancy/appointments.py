@@ -20,50 +20,17 @@ class Appointment(BaseModel):
     notes: str | None = None
 
 
-    # @field_validator("appointment_date", mode="before")
-    # def parse_date(cls, v):
-    #     if v is None:
-    #         return None
-    #     if isinstance(v, date):
-    #         return v
-    #     try:
-    #         return date.fromisoformat(v)
-    #     except Exception:
-    #         raise ValueError("appointment_date must be YYYY-MM-DD")
-
-    # @field_validator("appointment_time", mode="before")
-    # def parse_time(cls, v):
-    #     if v is None:
-    #         return None
-    #     if isinstance(v, time):
-    #         return v
-    #     try:
-    #         return time.fromisoformat(v)
-    #     except Exception:
-    #         raise ValueError("appointment_time must be HH:MM")
 
 
 class AppointmentUpdate(Appointment):
     id: str
 
 
-# def _normalize_record_for_db(rec: dict) -> dict:
-#     r = rec.copy()
-#     d = r.get("appointment_date")
-#     if isinstance(d, date):
-#         r["appointment_date"] = d.isoformat()
-#     t = r.get("appointment_time")
-#     if isinstance(t, time):
-#         r["appointment_time"] = t.isoformat()
-#     return r
-
-
 @router.post("/")
 async def create_appointment(request: Request, appointment:Appointment, user = Depends(get_current_user)):
     """stores the user appointments"""
-    details = appointment.model_dump(exclude=["id"], mode="json")
-    supabase = request.app.state.supabase
-    table = supabase.table("appointments")
+    details = appointment.model_dump(mode="json")
+    table = request.app.state.supabase.table("appointments")
     details['user_id'] = user
     try:
         await table.insert(details).execute()
@@ -93,24 +60,19 @@ async def get_appointments(request: Request,user= Depends(get_current_user)):
                        "notes",
                        "doctor",
                        "appointment_type"
-                       ).eq("user_id", user).execute()
+                       ).eq("user_id", user).order("appointment_date", desc=False,).order("appointment_time").execute()
     return JSONResponse(status_code=200,content=res.data)
 
-@router.patch("/")
-async def update_appointment(request: Request, appointment: AppointmentUpdate, user:str=Depends(get_current_user)):
+@router.patch("/{id}")
+async def update_appointment(request: Request, id: id, appointment: AppointmentUpdate, user:str=Depends(get_current_user)):
     """ Update appointment info"""
     supabase = request.app.state.supabase
     table = supabase.table("appointments")
 
-    if appointment.id is None:
-        raise HTTPException(status_code=400, detail="Missing ID")
-    
-    record = table.select("*").eq("id", appointment.id).eq("user_id", user).single().execute()
+    record = table.select("*").eq("id", id).eq("user_id", user).single().execute()
     if not record.data:
-        raise HTTPException(status_code=404, detail="Item not found")
+        raise HTTPException(status_code=404, detail="Appointment doesn't exist")
     
-    details = appointment.model_dump()
-    details = _normalize_record_for_db(details)
-    await table.update(details).eq("id", appointment.id).execute()
-    print(appointment)
+    details = appointment.model_dump(mode="json", exclude_unset=True)
+    await table.update(details).eq("id", id).execute()
     return Response(status_code=204) 

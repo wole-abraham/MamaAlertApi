@@ -20,3 +20,15 @@ async def get_profile(request: Request, user=Depends(get_current_user)):
     supabase = request.app.state.supabase
     supabase = await supabase.table("profiles").select("first_name, last_name, email").eq("id", user).execute() 
     return JSONResponse(status_code=200, content=supabase.data)
+
+@router.patch("/profile/update")
+async def update_profile(request: Request, user=Depends(get_current_user)):
+    """
+    Docstring for update_profile
+    
+    :param request: Description
+    :type request: Request 
+    :param user: Description
+    """
+
+    

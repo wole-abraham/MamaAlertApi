@@ -1,9 +1,10 @@
 from fastapi import APIRouter, Depends, Request
+from pydantic import BaseModel
 from fastapi.responses import JSONResponse, Response
-from pydantic import BaseModel, field_validator
-from datetime import date, time
 from app.api.dependencies.auth import get_current_user
-from enum import Enum
+from supabase import PostgrestAPIError
+from fastapi.exceptions import HTTPException
+
 
 
 
@@ -12,23 +13,35 @@ router = APIRouter(
     tags=["profile"]
 )
 
+class Profile(BaseModel):
+    first_name: str | None = None
+    last_name: str | None = None
+    phone: str | None = None
+
 @router.get("/me")
 async def get_profile(request: Request, user=Depends(get_current_user)):
     """
     gets user profile
     """
     supabase = request.app.state.supabase
-    supabase = await supabase.table("profiles").select("first_name, last_name, email").eq("id", user).execute() 
+    try:
+        await supabase.table("profiles").select("first_name, last_name, email, phone").eq("id", user).single().execute() 
+    except PostgrestAPIError:
+        raise HTTPException(status_code=404, detail="profile does not exist")
+    supabase = await supabase.table("profiles").select("first_name, last_name, email, phone").eq("id", user).single().execute() 
     return JSONResponse(status_code=200, content=supabase.data)
 
-@router.patch("/profile/update")
-async def update_profile(request: Request, user=Depends(get_current_user)):
+@router.patch("/update")
+async def update_profile(request: Request, payload: Profile, user=Depends(get_current_user)):
     """
-    Docstring for update_profile
-    
-    :param request: Description
-    :type request: Request 
-    :param user: Description
+    updates user profile
     """
+    print(payload)
+    try:
+        await request.app.state.supabase.table("profiles").select("*").eq("id", user).single().execute()
+    except PostgrestAPIError:
+        raise HTTPException(status_code=404, detail="profile doest not exist")
+    await request.app.state.supabase.table("profiles").update(payload.model_dump(mode="json", exclude_none=True)).eq("id", user).execute()
+    return Response(status_code=204)
 
-    
+

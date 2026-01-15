@@ -2,6 +2,8 @@ from fastapi import APIRouter, Depends, Request
 from fastapi.responses import JSONResponse, Response
 from pydantic import BaseModel, field_validator
 from fastapi.exceptions import HTTPException
+
+from supabase import PostgrestAPIError
 from app.api.dependencies.auth import get_current_user
 import dotenv
 import os
@@ -36,9 +38,8 @@ class EmergencyContact(BaseModel):
 @router.post("/add-contact")
 async def emergency_contact(request: Request, contact: EmergencyContact, user=Depends(get_current_user)):
     """add emergency contact"""
-    supabase = request.app.state.supabase
-    supabase.table("emergency_contacts")
-    data = contact.model_dump()
+    supabase = request.app.state.supabase.table("emergency_contacts")
+    data = contact.model_dump(mode="json")
     data['user_id'] = user
     await supabase.table("emergency_contacts").insert(data).execute()
     return Response(status_code=201)
@@ -79,5 +80,11 @@ async def emergency(request:Request, user=Depends(get_current_user)):
 @router.delete("/delete-contact/{id}")
 async def delete_contact(request: Request, id:str, user=Depends(get_current_user)):
     supabase = request.app.state.supabase
-    await supabase.table("emergency_conatacts").delete().eq("id", id, "user_id", user).execute()
+    try:
+        await supabase.table("emergency_contacts").select("*").eq("id", id, "user_id", user).single().execute()
+    except PostgrestAPIError:
+        raise HTTPException(status_code=404, detail="contact does not exist")
+    else:
+        await supabase.table("emergency_contacts").delete().eq("id", id, "user_id", user).execute()
+        return Response(status_code=204)
     

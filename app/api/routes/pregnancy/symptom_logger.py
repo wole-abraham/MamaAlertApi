@@ -4,9 +4,13 @@ from pydantic import BaseModel, field_validator
 from datetime import date, time
 from app.api.dependencies.auth import get_current_user
 from enum import Enum
+from typing import List
+import logging
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(
-    prefix="/logger",
+    prefix="/symptoms",
     tags=["logger"]
 )
 
@@ -63,20 +67,35 @@ class Symptom(BaseModel):
         except Exception:
             raise ValueError("time must be HH:MM")
 
-    
+class SyncSymptoms(BaseModel):
+    Symptoms: List[Symptom]
+
+
 @router.post("/")
 async def logger(request: Request, logs: Symptom, user:str=Depends(get_current_user)):
     """ symptom logger """
+    logging.getLogger(__name__).info(f"Logging symptom for user: {user}")
     logs = _normalize_record_for_db(logs.model_dump())
     logs['user_id'] = user
     supabase = request.app.state.supabase
-    table = supabase.table("symptom_logs")
-    await table.insert(logs).execute()
+    try:
+        supabase.table("symptom_logs").insert(logs).execute()
+        logging.getLogger(__name__).info(f"Symptom logged successfully for user: {user}")
+    except Exception as e:
+        logging.getLogger(__name__).error(f"Failed to log symptom for user {user}: {str(e)}")
+        raise
     return Response(status_code=201)
 
+@router.post("/sync")
+async def SyncSymptoms(request: Request, payload: SyncSymptoms, user=Depends(get_current_user)):
+    print(payload)
+    # await request.app.state.supabase.table("symptom_logs").insert(
+    #     payload.model_dump(mode="json")
+    # )
 @router.get("/")
 async def logger(request: Request, user=Depends(get_current_user)):
     """ get symptoms log history"""
+    logging.getLogger(__name__).info(f"Fetching symptom logs for user: {user}")
     supabase = request.app.state.supabase
     table = supabase.table("symptom_logs")
     logs = await table.select(
@@ -85,5 +104,6 @@ async def logger(request: Request, user=Depends(get_current_user)):
         "date",
         "time"
     ).eq("user_id", user).execute()
+    logging.getLogger(__name__).info(f"Retrieved {len(logs.data)} symptom logs for user: {user}")
     return JSONResponse(status_code=200, content=logs.data)
     

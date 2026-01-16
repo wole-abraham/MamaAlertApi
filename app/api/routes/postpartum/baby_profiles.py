@@ -4,6 +4,9 @@ from pydantic import BaseModel
 from datetime import date
 from fastapi.responses import Response, JSONResponse
 from fastapi.exceptions import HTTPException
+import logging
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -26,6 +29,7 @@ async def check_baby(supabase, baby_id):
 
 @router.post("/baby/profile")
 async def baby_profile(request:Request, payload:babyprofile, user=Depends(get_current_user)):
+    logger.info(f"Creating baby profile for user: {user}")
     supabase = request.app.state.supabase
     table = supabase.table("baby_profiles")
     payload = payload.model_dump()
@@ -33,12 +37,15 @@ async def baby_profile(request:Request, payload:babyprofile, user=Depends(get_cu
     payload['user_id'] = user
     try:
         await table.insert(payload).execute()
-    except Exception:
+        logger.info(f"Baby profile created successfully for user: {user}")
+    except Exception as e:
+        logger.error(f"Failed to create baby profile for user {user}: {str(e)}")
         raise HTTPException(status_code=400)
     return Response(status_code=201)
 
 @router.get("/baby/profile")
 async def babies(request:Request, user=Depends(get_current_user)):
+    logger.info(f"Fetching baby profiles for user: {user}")
     supabase = request.app.state.supabase
     table = supabase.table("baby_profiles")
     res = await table.select(
@@ -49,11 +56,13 @@ async def babies(request:Request, user=Depends(get_current_user)):
         "birth_height",
         "gender"
     ).eq("user_id", user).execute()
+    logger.info(f"Retrieved {len(res.data)} baby profiles for user: {user}")
     return JSONResponse(status_code=200, content=res.data)
 
 
 @router.get("/baby/profile/{id}")
 async def babies(request:Request, id: str,  user=Depends(get_current_user)):
+    logger.info(f"Fetching baby profile {id} for user: {user}")
     supabase = request.app.state.supabase
     await check_baby(supabase, id)
     table = supabase.table("baby_profiles")
@@ -65,17 +74,20 @@ async def babies(request:Request, id: str,  user=Depends(get_current_user)):
         "birth_height",
         "gender"
     ).eq("id", id).eq("user_id", user).single().execute()
+    logger.info(f"Retrieved baby profile {id} for user: {user}")
     return JSONResponse(status_code=200, content=res.data)
 
 @router.patch("/baby/profile/{id}")
 async def update_baby(request:Request, id:str, payload: babyprofile,user=Depends(get_current_user)):
+    logger.info(f"Updating baby profile {id} for user: {user}")
     supabase = request.app.state.supabase
     table = supabase.table("baby_profiles")
     payload = payload.model_dump()
     payload['birth_date'] = payload['birth_date'].isoformat()
     try:
         await table.update(payload).eq("user_id", user).eq("id", id).execute()
+        logger.info(f"Baby profile {id} updated successfully for user: {user}")
     except Exception as e:
-        print(e)
+        logger.error(f"Failed to update baby profile {id} for user {user}: {str(e)}")
         raise HTTPException(status_code=400)
     return Response(status_code=204)

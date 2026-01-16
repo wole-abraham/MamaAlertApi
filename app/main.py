@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+import logging
 
 from .api.routes.profile import profile
 
@@ -10,6 +11,13 @@ from .api.routes.pregnancy import appointments, emergency, symptom_logger, track
 from .api.routes.menstral import daily_log, log_period
 from app.supabase_client import create_supabase
 
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
+
 
 
 app = FastAPI(
@@ -20,7 +28,9 @@ app = FastAPI(
 
 @app.on_event("startup")
 async def startup_event():
+    logger.info("Application startup initiated")
     app.state.supabase = await create_supabase()
+    logger.info("Supabase client initialized successfully")
 
 # @app.on_event("shutdown")
 # async def shutdown_event():

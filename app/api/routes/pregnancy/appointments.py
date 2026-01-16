@@ -5,6 +5,9 @@ from app.api.dependencies.auth import get_current_user
 from datetime import time, date
 from typing import List
 from supabase import PostgrestAPIError
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 router = APIRouter(
@@ -33,18 +36,22 @@ class AppointmentUpdate(BaseModel):
 @router.post("/")
 async def create_appointment(request: Request, appointment:Appointment, user = Depends(get_current_user)):
     """stores the user appointments"""
+    logger.info(f"Creating appointment for user: {user}")
     details = appointment.model_dump(mode="json")
     table = request.app.state.supabase.table("appointments")
     details['user_id'] = user
     try:
         await table.insert(details).execute()
-    except PostgrestAPIError:
+        logger.info(f"Appointment created successfully for user: {user}")
+    except PostgrestAPIError as e:
+        logger.error(f"Failed to create appointment for user {user}: {str(e)}")
         raise HTTPException(status_code=400, detail="Invalid request")
     return Response(status_code=204)
 
 @router.get("/", response_model=List[Appointment])
 async def get_appointments(request: Request,user= Depends(get_current_user)):
     """get the user appointments from db"""
+    logger.info(f"Fetching appointments for user: {user}")
     supabase = request.app.state.supabase
     table = supabase.table("appointments")
     res = await table.select(
@@ -56,16 +63,23 @@ async def get_appointments(request: Request,user= Depends(get_current_user)):
         "doctor",
         "appointment_type"
         ).eq("user_id", user).order("appointment_date", desc=False).order("appointment_time", desc=True).execute()
+    logger.info(f"Retrieved {len(res.data)} appointments for user: {user}")
     return JSONResponse(status_code=200,content=res.data)
 
 
 @router.post("/bulk")
 async def create_bulk_appointments(request: Request, appointments:List[Appointment], user=Depends(get_current_user)):
     """Create appointments in Bulk  """
+    logger.info(f"Creating {len(appointments)} bulk appointments for user: {user}")
     supabase = request.app.state.supabase
     table = supabase.table("appointments")
     record = [a.model_dump(mode="json") | {"user_id": user} for a in appointments]
-    await table.insert(record).execute()
+    try:
+        await table.insert(record).execute()
+        logger.info(f"Bulk appointments created successfully for user: {user}")
+    except Exception as e:
+        logger.error(f"Failed to create bulk appointments for user {user}: {str(e)}")
+        raise
     return Response(status_code=204)
 
 
@@ -75,12 +89,15 @@ async def update_appointment(request: Request, appointment_id: str, appointment:
         -- user_id
         -- apppointment_id
     """
+    logger.info(f"Updating appointment {appointment_id} for user: {user}")
     try:
         await request.app.state.supabse.table("appointments").select("*").eq("id", appointment_id).eq("user_id", user).single().execute()
     except PostgrestAPIError:
+        logger.warning(f"Appointment {appointment_id} not found for user: {user}")
         raise HTTPException(status_code=404, detail="Appointment does not exist")
     details = appointment.model_dump(mode="json", exclude_unset=True, exclude_none=True)
     await request.app.state.supabse.table("appointments").update(details).eq("id", id).eq("user_id", user).execute()
+    logger.info(f"Appointment {appointment_id} updated successfully for user: {user}")
     return Response(status_code=204) 
 
 @router.delete("/{appointment_id}")
@@ -88,9 +105,12 @@ async def delete_appointment(request: Request,  appointment_id: str, user=Depend
     """
         Deletes Appointment
     """
+    logger.info(f"Deleting appointment {appointment_id} for user: {user}")
     try:
         await request.app.state.supabase.table("appointments").select("*").eq("id", appointment_id).eq("user_id", user).single().execute()
     except PostgrestAPIError:
+        logger.warning(f"Appointment {appointment_id} not found for user: {user}")
         raise HTTPException(status_code=404, detail="Appointment does not exist")
     await request.app.state.supabase.table("appointments").delete().eq("id", appointment_id).eq("user_id", user).execute()
+    logger.info(f"Appointment {appointment_id} deleted successfully for user: {user}")
     return Response(status_code=204)

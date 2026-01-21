@@ -46,7 +46,7 @@ async def emergency_contact(request: Request, contact: EmergencyContact, user=De
     data = contact.model_dump(mode="json")
     data['user_id'] = user
     try:
-        await supabase.table("emergency_contacts").insert(data).execute()
+        await supabase.insert(data).execute()
         logger.info(f"Emergency contact added successfully for user: {user}")
     except Exception as e:
         logger.error(f"Failed to add emergency contact for user {user}: {str(e)}")

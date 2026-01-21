@@ -26,6 +26,10 @@ app = FastAPI(
     version="1.0.0"
 )
 
+@app.get("/")
+async def status():
+    return {"status": "ok"}
+
 @app.on_event("startup")
 async def startup_event():
     logger.info("Application startup initiated")

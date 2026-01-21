@@ -12,7 +12,7 @@ from .api.routes import checklist, find_care
 from .api.routes.pregnancy import appointments, emergency, symptom_logger, trackers
 from .api.routes.menstral import daily_log, log_period
 from app.supabase_client import create_supabase
-
+from fastapi.middleware.cors import CORSMiddleware
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
@@ -27,6 +27,28 @@ app = FastAPI(
     description="API endpoints",
     version="1.0.0"
 )
+
+origins = [
+    "http://localhost",
+    "https://localhost",
+    "https://localhost:8080",
+    "http://localhost:8080",
+    "http://localhost:8000",
+    "https://localhost:8000",
+    "http://localhost:3001",
+    "https://localhost:3001",
+]
+
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    alloW_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"]
+)
+
+
 
 @app.get("/")
 async def status():

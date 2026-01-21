@@ -1,4 +1,6 @@
 from fastapi import FastAPI
+from fastapi.responses import JSONResponse
+
 import logging
 
 from .api.routes.profile import profile
@@ -28,7 +30,8 @@ app = FastAPI(
 
 @app.get("/")
 async def status():
-    return {"status": "ok"}
+    return JSONResponse(status_code=200, content={"status": "ok"})
+
 
 @app.on_event("startup")
 async def startup_event():
